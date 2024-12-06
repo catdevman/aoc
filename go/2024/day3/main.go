@@ -15,8 +15,10 @@ var testContent string
 var realContent string
 
 func main() {
+
 	sum := 0
-	checks := strings.Split(realContent, "mul(")
+	content := realContent
+	checks := strings.Split(content, "mul(")
 	for _, next := range checks {
 		re := regexp.MustCompile(`^\d+\,\d+\)`)
 		res := re.Find([]byte(next))
@@ -40,47 +42,46 @@ func main() {
 	fmt.Println("==========")
 	sum = 0
 	enabled := true
-	content := testContent
 	for i := 0; i < len(content); i++ {
 		x := 0
 		y := 0
 		if isNext(content, i, "do()") {
-			fmt.Println("Am I here")
 			enabled = true
 		} else if isNext(content, i, "don't()") {
-			fmt.Println("Am I here")
 			enabled = false
-		}
-		if isNext(content, i, "mul(") {
+		} else if isNext(content, i, "mul(") {
 			j := i + 4 //minimum amount before ')'
 			for content[j] != ')' {
+				if content[j] == 'm' {
+					break
+				}
 				j++
 			}
 
 			re := regexp.MustCompile(`\d+`)
-			matches := re.FindAll([]byte(content[i:j+1]), 2)
+			matches := re.FindAll([]byte(content[i:j+1]), 3)
 			if matches != nil && len(matches) == 2 {
 				x, y = getInt(matches[0]), getInt(matches[1])
-				fmt.Println(x, y)
+				if _, ok := mapping[byte(content[j-1])]; !ok {
+					continue
+				}
 			} else {
 				continue
 			}
 			if enabled {
 				sum += x * y
-				i += j
 			}
 		}
 
 	}
 	fmt.Println("answer for part 2:", sum)
-
 }
 
 func isNext(content string, idx int, comp string) bool {
-	if idx+len(comp) >= len(content) {
+
+	if idx+len(comp) > len(content) {
 		return false
 	}
-	fmt.Println(string(content[idx : idx+len(comp)]))
 	return string(content[idx:idx+len(comp)]) == comp
 }
 
